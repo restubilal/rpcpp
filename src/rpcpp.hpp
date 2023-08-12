@@ -237,7 +237,7 @@ std::string getCPUName() {
                 cpuName = cpuName.substr(first, last - first + 1);
             }
 
-            // Remove "12-Core Processor" from the CPU name
+            // Remove "12-Core Processor" from the CPU name, in my case i have AMD Ryzen 9 7900X 12-Core Processor, because the text too long and won't look good
             size_t corePos = cpuName.find("12-Core Processor");
             if (corePos != std::string::npos) {
                 cpuName.erase(corePos, std::string("12-Core Processor").length());
