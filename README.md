@@ -34,23 +34,6 @@ rpcpp
 
 To run manually (without installing) you need to start `./build/rpcpp` with the variables `LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/lib"`
 
-## AUR
-RPC++ is available in the Arch User Repository.
-
-To install, it run the commands:
-```sh
-pacman -S --needed base-devel
-pacman -S git
-git clone https://aur.archlinux.org/rpcpp-git.git
-cd rpcpp-git
-makepkg -si
-```
-
-You can use an AUR helper (for example yay):
-```sh
-yay -S rpcpp-git
-```
-
 ## Features
 - Displays your distro with an icon (supported: Arch, Gentoo, Mint, Ubuntu, Manjaro)
 - Displays the focused window's class name with an icon (see supported apps [here](./APPLICATIONS.md))
