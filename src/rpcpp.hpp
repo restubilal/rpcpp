@@ -27,8 +27,8 @@ using namespace std;
 
 int startTime;
 Display *disp;
-float mem = -1, cpu = -1;
-string distro;
+float mem = -1, cpu = -1, gpu = -1;
+string distro, gpuName, cpuName;
 static int trapped_error_code = 0;
 string wm;
 
@@ -214,7 +214,63 @@ void getLast()
            &lastTotalSys, &lastTotalIdle);
     fclose(file);
 }
+std::string getCPUName() {
+    std::string cpuName;
 
+    FILE* pipe = popen("lscpu", "r");
+    if (!pipe) {
+        std::cerr << "Error: Unable to open pipe for lscpu command." << std::endl;
+        return "";
+    }
+
+    char buffer[128];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        std::string line(buffer);
+        std::smatch match;
+        if (std::regex_search(line, match, std::regex("Model name: (.+)"))) {
+            cpuName = match[1];
+
+            // Remove leading and trailing whitespace
+            size_t first = cpuName.find_first_not_of(" \t\n\r");
+            size_t last = cpuName.find_last_not_of(" \t\n\r");
+            if (first != std::string::npos && last != std::string::npos) {
+                cpuName = cpuName.substr(first, last - first + 1);
+            }
+
+            // Remove "12-Core Processor" from the CPU name
+            size_t corePos = cpuName.find("12-Core Processor");
+            if (corePos != std::string::npos) {
+                cpuName.erase(corePos, std::string("12-Core Processor").length());
+            }
+
+            break;
+        }
+    }
+
+    pclose(pipe);
+
+    return cpuName;
+}
+std::string getGPUName() {
+    std::string gpuName;
+
+    FILE* pipe = popen("nvidia-smi --query-gpu=name --format=csv,noheader", "r");
+    if (!pipe) {
+        std::cerr << "Error: Unable to open pipe for nvidia-smi command." << std::endl;
+        return "";
+    }
+
+    char buffer[128];
+    if (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        gpuName = buffer;
+        // Remove newline character if present
+        gpuName.erase(std::remove(gpuName.begin(), gpuName.end(), '\n'), gpuName.end());
+    }
+
+    pclose(pipe);
+
+    return gpuName;
+}
 double getCPU()
 {
     getLast();
@@ -251,7 +307,38 @@ double getCPU()
 
     return percent;
 }
+float getGPU()
+{
+    std::string nvidiaCmd = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits";
+    std::string gpuUsage;
 
+    FILE* pipe = popen(nvidiaCmd.c_str(), "r");
+    if (!pipe)
+    {
+        std::cerr << "Error executing nvidia-smi command." << std::endl;
+        return -1.0;
+    }
+
+    char buffer[128];
+    while (!feof(pipe))
+    {
+        if (fgets(buffer, 128, pipe) != NULL)
+        {
+            gpuUsage += buffer;
+        }
+    }
+
+    pclose(pipe);
+
+    if (!gpuUsage.empty())
+    {
+        return std::stof(gpuUsage);
+    }
+    else
+    {
+        return -1.0;
+    }
+}
 bool processRunning(string name, bool ignoreCase = true)
 {
 

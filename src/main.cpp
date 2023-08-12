@@ -10,7 +10,7 @@ void *updateRPC(void *ptr)
     log("Waiting for usages to load...", LogType::DEBUG);
 
     // wait for usages to load
-    while (cpu == -1 || mem == -1)
+    while (cpu == -1 || mem == -1 || gpu == -1)
     {
         usleep(1000);
     }
@@ -22,7 +22,7 @@ void *updateRPC(void *ptr)
     {
         string cpupercent = to_string((long)cpu);
         string rampercent = to_string((long)mem);
-
+        string gpupercent = to_string((long)gpu);
         usleep(config.updateSleep * 1000);
 
         if (!config.noSmallImage)
@@ -44,7 +44,7 @@ void *updateRPC(void *ptr)
             }
         }
 
-        setActivity(*state, string("CPU: " + cpupercent + "% | RAM: " + rampercent + "%"), "WM: " + wm, windowAsset.image, windowAsset.text, distroAsset.image, distroAsset.text, startTime, discord::ActivityType::Playing);
+        setActivity(*state, string("CPU: " + cpuName + " | GPU: " + gpuName ), string("CPU: " + cpupercent + "% | RAM: " + rampercent + "% | GPU: " + gpupercent + "%"), windowAsset.image, windowAsset.text, distroAsset.image, distroAsset.text, startTime, discord::ActivityType::Playing);
     }
 }
 
@@ -61,6 +61,9 @@ void *updateUsage(void *ptr)
     {
         mem = getRAM();
         cpu = getCPU();
+        gpu = getGPU();
+        cpuName = getCPUName();
+        gpuName = getGPUName();
         sleep(config.usageSleep / 1000.0);
     }
 }
