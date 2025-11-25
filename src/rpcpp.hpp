@@ -16,7 +16,7 @@
 #include <X11/Xutil.h>
 
 // variables
-#define VERSION "2.1.1"
+#define VERSION "2.2.0"
 
 namespace
 {
@@ -181,17 +181,16 @@ string getActiveWindowClassName(Display *disp)
 {
     Window root = XDefaultRootWindow(disp);
 
-    char *prop = get_property(disp, root, XA_WINDOW, "_NET_ACTIVE_WINDOW");
+    char prop[256];
+    get_property(disp, root, XA_WINDOW, "_NET_ACTIVE_WINDOW", prop, sizeof(prop));
 
-    if (prop == NULL)
+    if (prop[0] == '\0')
     {
         return "";
     }
 
     XClassHint hint;
     int hintStatus = XGetClassHint(disp, *((Window *)prop), &hint);
-
-    free(prop);
 
     if (hintStatus == 0)
     {
